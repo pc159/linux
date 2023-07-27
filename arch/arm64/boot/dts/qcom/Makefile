@@ -186,6 +186,7 @@ dtb-$(CONFIG_ARCH_QCOM)	+= sm8150-mtp.dtb
 dtb-$(CONFIG_ARCH_QCOM)	+= sm8150-sony-xperia-kumano-bahamut.dtb
 dtb-$(CONFIG_ARCH_QCOM)	+= sm8150-sony-xperia-kumano-griffin.dtb
 dtb-$(CONFIG_ARCH_QCOM)	+= sm8150-xiaomi-cepheus.dtb
+dtb-$(CONFIG_ARCH_QCOM)	+= sm8150-xiaomi-raphael.dtb
 dtb-$(CONFIG_ARCH_QCOM)	+= sm8150-xiaomi-vayu.dtb
 dtb-$(CONFIG_ARCH_QCOM)	+= sm8150-oneplus-guacamole.dtb
 dtb-$(CONFIG_ARCH_QCOM)	+= sm8150-oneplus-hotdogb.dtb
