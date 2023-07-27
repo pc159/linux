@@ -18,6 +18,8 @@
 #include <dt-bindings/interconnect/qcom,osm-l3.h>
 #include <dt-bindings/interconnect/qcom,sm8150.h>
 #include <dt-bindings/thermal/thermal.h>
+#include <dt-bindings/soc/qcom,apr.h>
+#include <dt-bindings/sound/qcom,q6afe.h>
 
 / {
 	interrupt-parent = <&intc>;
@@ -3463,6 +3465,9 @@
 			};
 		};
 
+		sound: sound {
+                };
+
 		usb_1_hsphy: phy@88e2000 {
 			compatible = "qcom,sm8150-usb-hs-phy",
 				     "qcom,usb-snps-hs-7nm-phy";
@@ -4335,6 +4340,56 @@
 				qcom,remote-pid = <2>;
 				mboxes = <&apss_shared 8>;
 
+				apr {
+					compatible = "qcom,apr-v2";
+					qcom,glink-channels = "apr_audio_svc";
+					qcom,domain = <APR_DOMAIN_ADSP>;
+					#address-cells = <1>;
+					#size-cells = <0>;
+
+					apr-service@3 {
+						reg = <APR_SVC_ADSP_CORE>;
+						compatible = "qcom,q6core";
+						};
+
+					q6afe: apr-service@4 {
+						compatible = "qcom,q6afe";
+						reg = <APR_SVC_AFE>;
+						q6afedai: dais {
+							compatible = "qcom,q6afe-dais";
+							#address-cells = <1>;
+							#size-cells = <0>;
+							#sound-dai-cells = <1>;
+								};
+
+						q6afecc: cc {
+							compatible = "qcom,q6afe-clocks";
+							#clock-cells = <2>;
+								};
+							};
+
+						q6asm: apr-service@7 {
+							compatible = "qcom,q6asm";
+							reg = <APR_SVC_ASM>;
+							q6asmdai: dais {
+								compatible = "qcom,q6asm-dais";
+								#address-cells = <1>;
+								#size-cells = <0>;
+								#sound-dai-cells = <1>;
+								iommus = <&apps_smmu 0x1b21 0x0>;
+									};
+								};
+
+						q6adm: apr-service@8 {
+							compatible = "qcom,q6adm";
+							reg = <APR_SVC_ADM>;
+							q6routing: routing {
+								compatible = "qcom,q6adm-routing";
+								#sound-dai-cells = <0>;
+									};
+								};
+							};
+
 				fastrpc {
 					compatible = "qcom,fastrpc";
 					qcom,glink-channels = "fastrpcglink-apps-dsp";
@@ -4385,6 +4440,18 @@
 			reg = <0 0x17c10000 0 0x1000>;
 			clocks = <&sleep_clk>;
 			interrupts = <GIC_SPI 0 IRQ_TYPE_EDGE_RISING>;
+		};
+
+		slimbam: dma-controller@17184000 {
+			compatible = "qcom,bam-v1.7.4", "qcom,bam-v1.7.0";
+			qcom,controlled-remotely;
+			reg = <0 0x17184000 0 0x2c000>;
+			num-channels = <31>;
+			interrupts = <GIC_SPI 164 IRQ_TYPE_LEVEL_HIGH>;
+			#dma-cells = <1>;
+			qcom,ee = <1>;
+			qcom,num-ees = <2>;
+			iommus = <&apps_smmu 0x1b46 0x0>;
 		};
 
 		timer@17c20000 {
@@ -4552,6 +4619,20 @@
 
 			#freq-domain-cells = <1>;
 			#clock-cells = <1>;
+		};
+
+		slim: slim-ngd@171c0000 {
+			compatible = "qcom,slim-ngd-v2.1.0";
+			reg = <0 0x171c0000 0 0x2c000>;
+			interrupts = <GIC_SPI 163 IRQ_TYPE_LEVEL_HIGH>;
+
+			dmas = <&slimbam 3>, <&slimbam 4>;
+			dma-names = "rx", "tx";
+
+			iommus = <&apps_smmu 0x1b46 0x0>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "disabled";
 		};
 
 		lmh_cluster1: lmh@18350800 {
