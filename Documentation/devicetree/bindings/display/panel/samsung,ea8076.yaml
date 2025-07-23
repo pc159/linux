@@ -1,0 +1,71 @@
+# SPDX-License-Identifier: GPL-2.0-only OR BSD-2-Clause
+%YAML 1.2
+---
+$id: http://devicetree.org/schemas/display/panel/samsung,ea8076.yaml#
+$schema: http://devicetree.org/meta-schemas/core.yaml#
+
+title: Samsung EA8076 1080x2340 AMOLED panel
+
+description: EA8076 panel manufactured by Samsung Display. It's used in some Xiaomi smartphones from 2018 and 2019, such as xiaomi-pyxis or xiaomi-perseus.
+
+maintainers:
+  - Alicja Michalska <alicja.michalska@9elements.com>
+
+allOf:
+  - $ref: panel-common.yaml#
+
+properties:
+  compatible:
+    const: samsung,ea8076
+
+  reg:
+    maxItems: 1
+
+  te-gpios: VSync GPIO pin, usually GPIO_ACTIVE_LOW.
+  reset-gpios: Reset GPIO pin, usually GPIO_ACTIVE_LOW.
+
+  port: Required on platforms using MDSS DSI (Qualcomm).
+
+  vio-supply:
+    description: IO supply, usually 3V controlled by GPIO regulator.
+
+  power-supply:
+    description: Main power supply for the panel, usually around 3.3V.
+
+required:
+  - compatible
+  - vio-supply
+  - power-supply
+  - te-gpios
+  - reset-gpios
+
+unevaluatedProperties: false
+
+examples:
+  - |
+    #include <dt-bindings/gpio/gpio.h>
+
+    dsi {
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        panel@0 {
+            compatible = "samsung,ea8076";
+            reg = <0>;
+            vio-supply = <&disp_3p0_en>;
+            power-supply = <&vreg_l8b_3p3>;
+            te-gpios = <&tlmm 10 GPIO_ACTIVE_LOW>;
+            reset-gpios = <&tlmm 75 GPIO_ACTIVE_LOW>;
+            pinctrl-names = "default", "sleep";
+            pinctrl-0 = <&panel_default>;
+            pinctrl-1 = <&panel_sleep>;
+
+            port {
+                panel_in: endpoint {
+                    remote-endpoint = <&mdss_dsi0_out>;
+                };
+            };
+        };
+    };
+
+...
