@@ -1,25 +1,25 @@
 // SPDX-License-Identifier: GPL-2.0-only
-// Copyright (c) 2023 Degdag Mohamed <degdagmohamed@gmail.com>;
+// Copyright (c) 2025 FIXME
+// Generated with linux-mdss-dsi-panel-driver-generator from vendor device tree:
+//   Copyright (c) 2013, The Linux Foundation. All rights reserved. (FIXME)
 
 #include <linux/backlight.h>
 #include <linux/delay.h>
 #include <linux/gpio/consumer.h>
 #include <linux/module.h>
 #include <linux/of.h>
-#include <linux/regulator/consumer.h>
 
 #include <video/mipi_display.h>
 
 #include <drm/drm_mipi_dsi.h>
 #include <drm/drm_modes.h>
 #include <drm/drm_panel.h>
+#include <drm/drm_probe_helper.h>
 
 struct ss_ea8076_global {
 	struct drm_panel panel;
 	struct mipi_dsi_device *dsi;
-	struct regulator_bulk_data supplies[3];
 	struct gpio_desc *reset_gpio;
-	bool prepared;
 };
 
 static inline
@@ -127,26 +127,15 @@ static int ss_ea8076_global_prepare(struct drm_panel *panel)
 	struct device *dev = &ctx->dsi->dev;
 	int ret;
 
-	if (ctx->prepared)
-		return 0;
-
-	ret = regulator_bulk_enable(ARRAY_SIZE(ctx->supplies), ctx->supplies);
-	if (ret < 0) {
-		dev_err(dev, "Failed to enable regulators: %d\n", ret);
-		return ret;
-	}
-
 	ss_ea8076_global_reset(ctx);
 
 	ret = ss_ea8076_global_on(ctx);
 	if (ret < 0) {
 		dev_err(dev, "Failed to initialize panel: %d\n", ret);
 		gpiod_set_value_cansleep(ctx->reset_gpio, 1);
-		regulator_bulk_disable(ARRAY_SIZE(ctx->supplies), ctx->supplies);
 		return ret;
 	}
 
-	ctx->prepared = true;
 	return 0;
 }
 
@@ -156,17 +145,12 @@ static int ss_ea8076_global_unprepare(struct drm_panel *panel)
 	struct device *dev = &ctx->dsi->dev;
 	int ret;
 
-	if (!ctx->prepared)
-		return 0;
-
 	ret = ss_ea8076_global_off(ctx);
 	if (ret < 0)
 		dev_err(dev, "Failed to un-initialize panel: %d\n", ret);
 
 	gpiod_set_value_cansleep(ctx->reset_gpio, 1);
-	regulator_bulk_disable(ARRAY_SIZE(ctx->supplies), ctx->supplies);
 
-	ctx->prepared = false;
 	return 0;
 }
 
@@ -182,25 +166,13 @@ static const struct drm_display_mode ss_ea8076_global_mode = {
 	.vtotal = 2340 + 64 + 27 + 64,
 	.width_mm = 68,
 	.height_mm = 147,
+	.type = DRM_MODE_TYPE_DRIVER,
 };
 
 static int ss_ea8076_global_get_modes(struct drm_panel *panel,
 				      struct drm_connector *connector)
 {
-	struct drm_display_mode *mode;
-
-	mode = drm_mode_duplicate(connector->dev, &ss_ea8076_global_mode);
-	if (!mode)
-		return -ENOMEM;
-
-	drm_mode_set_name(mode);
-
-	mode->type = DRM_MODE_TYPE_DRIVER | DRM_MODE_TYPE_PREFERRED;
-	connector->display_info.width_mm = mode->width_mm;
-	connector->display_info.height_mm = mode->height_mm;
-	drm_mode_probed_add(connector, mode);
-
-	return 1;
+	return drm_connector_helper_get_modes_fixed(connector, &ss_ea8076_global_mode);
 }
 
 static const struct drm_panel_funcs ss_ea8076_global_panel_funcs = {
@@ -256,7 +228,7 @@ ss_ea8076_global_create_backlight(struct mipi_dsi_device *dsi)
 	struct device *dev = &dsi->dev;
 	const struct backlight_properties props = {
 		.type = BACKLIGHT_RAW,
-		.brightness = 1024,
+		.brightness = 2047,
 		.max_brightness = 2047,
 	};
 
@@ -274,14 +246,6 @@ static int ss_ea8076_global_probe(struct mipi_dsi_device *dsi)
 	if (!ctx)
 		return -ENOMEM;
 
-	ctx->supplies[0].supply = "vddio";
-	ctx->supplies[1].supply = "vcie";
-	ctx->supplies[2].supply = "vci";
-	ret = devm_regulator_bulk_get(dev, ARRAY_SIZE(ctx->supplies),
-				      ctx->supplies);
-	if (ret < 0)
-		return dev_err_probe(dev, ret, "Failed to get regulators\n");
-
 	ctx->reset_gpio = devm_gpiod_get(dev, "reset", GPIOD_OUT_HIGH);
 	if (IS_ERR(ctx->reset_gpio))
 		return dev_err_probe(dev, PTR_ERR(ctx->reset_gpio),
@@ -294,11 +258,10 @@ static int ss_ea8076_global_probe(struct mipi_dsi_device *dsi)
 	dsi->format = MIPI_DSI_FMT_RGB888;
 	dsi->mode_flags = MIPI_DSI_MODE_VIDEO_BURST |
 			  MIPI_DSI_CLOCK_NON_CONTINUOUS | MIPI_DSI_MODE_LPM;
-	
-	ctx->panel.prepare_prev_first = true;
 
 	drm_panel_init(&ctx->panel, dev, &ss_ea8076_global_panel_funcs,
 		       DRM_MODE_CONNECTOR_DSI);
+	ctx->panel.prepare_prev_first = true;
 
 	ctx->panel.backlight = ss_ea8076_global_create_backlight(dsi);
 	if (IS_ERR(ctx->panel.backlight))
@@ -309,9 +272,8 @@ static int ss_ea8076_global_probe(struct mipi_dsi_device *dsi)
 
 	ret = mipi_dsi_attach(dsi);
 	if (ret < 0) {
-		dev_err(dev, "Failed to attach to DSI host: %d\n", ret);
 		drm_panel_remove(&ctx->panel);
-		return ret;
+		return dev_err_probe(dev, ret, "Failed to attach to DSI host\n");
 	}
 
 	return 0;
@@ -345,6 +307,6 @@ static struct mipi_dsi_driver ss_ea8076_global_driver = {
 };
 module_mipi_dsi_driver(ss_ea8076_global_driver);
 
-MODULE_AUTHOR("degdag-mohamed <degdagmohamed@gmail.com>");
+MODULE_AUTHOR("linux-mdss-dsi-panel-driver-generator <fix@me>"); // FIXME
 MODULE_DESCRIPTION("DRM driver for samsung ea8076 fhd cmd dsi panel");
 MODULE_LICENSE("GPL");
