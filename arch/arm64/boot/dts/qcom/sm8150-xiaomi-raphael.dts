@@ -186,7 +186,7 @@
 	};
 
 	/* S4 is modeled as a fixed regulator in vendor sources */
-	vreg_s4a_1p8: pm8150-s4-regulator {
+	vreg_s4a_1p8: pm8150-s4 {
 		compatible = "regulator-fixed";
 		regulator-name = "vreg_s4a_1p8";
 
@@ -997,7 +997,7 @@
 &ufs_mem_phy {
 	status = "okay";
 
-	vdda-phy-supply = <&vreg_l5a_0p875>; // vreg_l5a_0p8 on nabu
+	vdda-phy-supply = <&vdda_ufs_2ln_core_1>; // vreg_l5a_0p8 on nabu
 	vdda-phy-max-microamp = <90200>;
 	vdda-pll-supply = <&vreg_l3c_1p2>;
 	vdda-pll-max-microamp = <19000>;
