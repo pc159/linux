@@ -178,7 +178,7 @@
 	};
 
 	/* S4 is modeled as a fixed regulator in vendor sources */
-	vreg_s4a_1p8: pm8150-s4-regulator {
+	vreg_s4a_1p8: pm8150-s4 {
 		compatible = "regulator-fixed";
 		regulator-name = "vreg_s4a_1p8";
 
@@ -978,26 +978,22 @@
 &ufs_mem_hc {
 	status = "okay";
 
-	//reset-gpios = <&tlmm 178 GPIO_ACTIVE_LOW>;
-
-	//vcc-supply = <&vreg_l10a_2p5>;
-	//vccq-supply = <&vreg_l9a_1p2>;
-	//vccq2-supply = <&vreg_s4a_1p8>;
-	//vcc-max-microamp = <750000>;
-	//vccq-max-microamp = <700000>;
-	//vccq2-max-microamp = <750000>;
+	reset-gpios = <&tlmm 178 GPIO_ACTIVE_LOW>;
+	vcc-supply = <&vreg_l10a_2p5>;
+	vcc-max-microamp = <750000>;
+	vccq-supply = <&vreg_l9a_1p2>;
+	vccq-max-microamp = <700000>;
+	vccq2-supply = <&vreg_s4a_1p8>;
+	vccq2-max-microamp = <750000>;
 };
 
 &ufs_mem_phy {
 	status = "okay";
 
-	//vdda-phy-supply = <&vdda_ufs_2ln_core_1>;
-	//vdda-pll-supply = <&vreg_l3c_1p2>;
-	//vddp-ref-clk-supply = <&vreg_l9a_1p2>;
-	//vdda-phy-max-microamp = <90200>;
-	//vdda-pll-max-microamp = <19000>;
-	//vddp-ref-clk-max-microamp = <100>;
-	//vddp-ref-clk-always-on;
+	vdda-phy-supply = <&vdda_ufs_2ln_core_1>; // vreg_l5a_0p8 on nabu
+	vdda-phy-max-microamp = <90200>;
+	vdda-pll-supply = <&vreg_l3c_1p2>;
+	vdda-pll-max-microamp = <19000>;
 };
 
 &usb_1 {
