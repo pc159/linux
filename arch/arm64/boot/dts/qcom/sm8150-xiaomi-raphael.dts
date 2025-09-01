@@ -179,7 +179,7 @@
 	};
 
 	/* S4 is modeled as a fixed regulator in vendor sources */
-	vreg_s4a_1p8: pm8150-s4-regulator {
+	vreg_s4a_1p8: pm8150-s4 {
 		compatible = "regulator-fixed";
 		regulator-name = "vreg_s4a_1p8";
 
