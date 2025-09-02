@@ -732,21 +732,6 @@
 			sound-dai = <&tfa9874_codec>;
 		};
 	};
-
-	speaker_playback_dai {
-		link-name = "Primary Spkr Playback";
-		cpu {
-			sound-dai = <&q6afedai QUATERNARY_MI2S_RX>;
-		};
-
-		platform {
-			sound-dai = <&q6routing>;
-		};
-
-		codec {
-			sound-dai =  <&tfa9874_codec 0>;
-		};
-	};
 };
 
 &tlmm {
