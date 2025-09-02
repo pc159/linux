@@ -559,8 +559,8 @@
 		status = "okay";
 		
 		vddio-supply = <&vreg_l14a_1p88>;
-		vcie-supply = <&disp_vci_vreg>;
-		vci-supply = <&vreg_l13a_2p7>;
+		vdd3p3-supply = <&vreg_l13a_2p7>;
+
 		reset-gpios = <&tlmm 6 GPIO_ACTIVE_LOW>;
 		
 		pinctrl-names = "panel_active", "panel_suspend";
